@@ -15,6 +15,9 @@ namespace RecursiveMediaBrowser {
     private bool Fullscreen = false;
     private Point LastLocation;
 
+    private bool Muted = false;
+    private int LastVolume;
+
     private readonly KeybindsForm KeybindsWindow;
 
     public MainForm() {
@@ -66,9 +69,18 @@ namespace RecursiveMediaBrowser {
 
     private void Play() {
       using Media MediaFile = new(this.Vlc, MediaFiles[CurrentIndex]);
-      string? MediaTitle = MediaFile.Meta(MetadataType.Title) ?? MediaFile.Meta(MetadataType.Description) ?? MediaFiles[CurrentIndex];
 
-      this.Text = $"Recursive Media Browser - {MediaTitle}";
+      string? MediaTitle = MediaFile.Meta(MetadataType.Title);
+      if (MediaTitle is null) {
+        this.Text = $"Recursive Media Browser - {MediaFile.Meta(MetadataType.Description) ?? MediaFiles[CurrentIndex]}";
+
+      } else if (!MediaTitle.Equals(Path.GetFileName(MediaFiles[CurrentIndex]))) {
+        this.Text = $"Recursive Media Browser - {MediaTitle}";
+
+      } else {
+        this.Text = $"Recursive Media Browser - {MediaFiles[CurrentIndex]}";
+      }
+
       this.Player.Play(MediaFile);
     }
 
@@ -88,11 +100,20 @@ namespace RecursiveMediaBrowser {
           break;
 
         case Keys.Up:
-          this.Player.Volume = Math.Min(this.Player.Volume + 1, 100);
+          this.Player.Volume = Math.Min(this.Player.Volume + 4, 100);
           break;
 
         case Keys.Down:
-          this.Player.Volume = Math.Max(this.Player.Volume - 1, 0);
+          this.Player.Volume = Math.Max(this.Player.Volume - 4, 0);
+          break;
+
+        case Keys.M:
+          if (!this.Muted) {
+            this.LastVolume = this.Player.Volume;
+          }
+
+          this.Muted = !this.Muted;
+          this.Player.Volume = this.Muted ? 0 : this.LastVolume;
           break;
 
         case Keys.Space:

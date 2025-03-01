@@ -133,6 +133,6 @@ W      - Next Frame
 A      - Jump back 10 Seconds
 D      - Jump forward 10 Seconds
 S      - Stop
-</value>
+M      - Mute</value>
   </data>
 </root>
