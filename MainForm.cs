@@ -105,9 +105,9 @@ namespace RecursiveMediaBrowser {
           }
 
           this.Fullscreen = !this.Fullscreen;
+          this.FormBorderStyle = this.Fullscreen ? FormBorderStyle.None : FormBorderStyle.Sizable;
           this.Size = this.Fullscreen ? Screen.FromControl(this).Bounds.Size : new Size(800, 450);
           this.Location = this.Fullscreen ? Screen.FromControl(this).Bounds.Location : this.LastLocation;
-          this.FormBorderStyle = this.Fullscreen ? FormBorderStyle.None : FormBorderStyle.Sizable;
           break;
 
         case Keys.K:
