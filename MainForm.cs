@@ -16,8 +16,12 @@ namespace RecursiveMediaBrowser {
     private bool Fullscreen = false;
     private Point LastLocation;
 
+    private readonly KeybindsForm KeybindsWindow;
+
     public MainForm() {
       InitializeComponent();
+
+      this.KeybindsWindow = new(this);
 
       this.Vlc = new LibVLC();
       this.VlcVideoView.MediaPlayer = new MediaPlayer(this.Vlc);
@@ -90,6 +94,39 @@ namespace RecursiveMediaBrowser {
           this.Size = this.Fullscreen ? Screen.FromControl(this).Bounds.Size : new Size(800, 450);
           this.Location = this.Fullscreen ? Screen.FromControl(this).Bounds.Location : this.LastLocation;
           this.FormBorderStyle = this.Fullscreen ? FormBorderStyle.None : FormBorderStyle.Sizable;
+          break;
+
+        case Keys.K:
+          KeybindsWindow.Show();
+          break;
+
+        case Keys.Q:
+          this.VlcVideoView.MediaPlayer!.PreviousChapter();
+          break;
+
+        case Keys.E:
+          this.VlcVideoView.MediaPlayer!.NextChapter();
+          break;
+
+        case Keys.W:
+          this.VlcVideoView.MediaPlayer!.NextFrame();
+          break;
+
+        case Keys.A:
+          if (this.VlcVideoView.MediaPlayer!.IsSeekable) {
+            this.VlcVideoView.MediaPlayer!.SeekTo(TimeSpan.FromMilliseconds(this.VlcVideoView.MediaPlayer!.Time - 10000));
+          }
+          break;
+
+        case Keys.D:
+          if (this.VlcVideoView.MediaPlayer!.IsSeekable) {
+            this.VlcVideoView.MediaPlayer!.SeekTo(TimeSpan.FromMilliseconds(this.VlcVideoView.MediaPlayer!.Time + 10000));
+          }
+          break;
+
+        case Keys.S:
+          this.VlcVideoView.MediaPlayer!.SetPause(true);
+          this.VlcVideoView.MediaPlayer!.Position = 0;
           break;
 
         case Keys.Escape:
