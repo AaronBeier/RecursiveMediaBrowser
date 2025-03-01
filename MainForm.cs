@@ -8,8 +8,8 @@ namespace RecursiveMediaBrowser {
     private static readonly string[] OtherExtensions = [".mp4", ".mkv", ".avi", ".mp3", ".flac", ".wav", ".ogg"];
 
     private readonly LibVLC Vlc;
+    private readonly MediaPlayer Player;
 
-    private string RootFolder = null!;
     private readonly List<string> MediaFiles = [];
     private int CurrentIndex = 0;
 
@@ -20,22 +20,37 @@ namespace RecursiveMediaBrowser {
 
     public MainForm() {
       InitializeComponent();
-
       this.KeybindsWindow = new(this);
 
       this.Vlc = new LibVLC();
-      this.VlcVideoView.MediaPlayer = new MediaPlayer(this.Vlc);
+      this.Player = new MediaPlayer(this.Vlc);
+      this.VlcVideoView.MediaPlayer = this.Player;
     }
 
     private void OnMainFormLoad(object _, EventArgs Event) {
-      if (this.OpenFolderDialog.ShowDialog() != DialogResult.OK) {
+      if (this.OpenFolderDialog.ShowDialog() != DialogResult.OK || string.IsNullOrWhiteSpace(this.OpenFolderDialog.SelectedPath)) {
         this.Close();
       }
 
       this.Activate(); // Bring the window to the front. BringToFront() and Focus() didnt work for me
 
-      this.RootFolder = this.OpenFolderDialog.SelectedPath;
-      foreach (string FilePath in Directory.EnumerateFiles(this.RootFolder, "*", SearchOption.AllDirectories)) {
+      #region Check and update when the Program was last opened and show Keybinds if it was more than a day ago
+      string LastOpenedFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RecursiveMediaBrowserLastOpen.txt");
+      if (!File.Exists(LastOpenedFilePath)) {
+        this.KeybindsWindow.Show();
+
+      } else {
+        long LastOpenedTimestamp = long.Parse(File.ReadAllText(LastOpenedFilePath));
+
+        if (DateTimeOffset.FromUnixTimeSeconds(LastOpenedTimestamp).AddDays(1) < DateTimeOffset.UtcNow) {
+          this.KeybindsWindow.Show();
+        }
+      }
+
+      File.WriteAllText(LastOpenedFilePath, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+      #endregion
+
+      foreach (string FilePath in Directory.EnumerateFiles(this.OpenFolderDialog.SelectedPath, "*", SearchOption.AllDirectories)) {
         if (ImageExtensions.Contains(Path.GetExtension(FilePath)) || OtherExtensions.Contains(Path.GetExtension(FilePath))) {
           this.MediaFiles.Add(FilePath);
         }
@@ -50,7 +65,7 @@ namespace RecursiveMediaBrowser {
       string? MediaTitle = MediaFile.Meta(MetadataType.Title) ?? MediaFile.Meta(MetadataType.Description) ?? MediaFiles[CurrentIndex];
 
       this.Text = $"Recursive Media Browser - {MediaTitle}";
-      this.VlcVideoView.MediaPlayer!.Play(MediaFile);
+      this.Player.Play(MediaFile);
     }
 
     private void OnMainFormKeyUp(object _, KeyEventArgs Event) {
@@ -69,15 +84,15 @@ namespace RecursiveMediaBrowser {
           break;
 
         case Keys.Up:
-          this.VlcVideoView.MediaPlayer!.Volume = Math.Min(this.VlcVideoView.MediaPlayer!.Volume + 1, 100);
+          this.Player.Volume = Math.Min(this.Player.Volume + 1, 100);
           break;
 
         case Keys.Down:
-          this.VlcVideoView.MediaPlayer!.Volume = Math.Max(this.VlcVideoView.MediaPlayer!.Volume - 1, 0);
+          this.Player.Volume = Math.Max(this.Player.Volume - 1, 0);
           break;
 
         case Keys.Space:
-          this.VlcVideoView.MediaPlayer!.Pause();
+          this.Player.Pause();
           break;
 
         case Keys.R:
@@ -101,32 +116,32 @@ namespace RecursiveMediaBrowser {
           break;
 
         case Keys.Q:
-          this.VlcVideoView.MediaPlayer!.PreviousChapter();
+          this.Player.PreviousChapter();
           break;
 
         case Keys.E:
-          this.VlcVideoView.MediaPlayer!.NextChapter();
+          this.Player.NextChapter();
           break;
 
         case Keys.W:
-          this.VlcVideoView.MediaPlayer!.NextFrame();
+          this.Player.NextFrame();
           break;
 
         case Keys.A:
-          if (this.VlcVideoView.MediaPlayer!.IsSeekable) {
-            this.VlcVideoView.MediaPlayer!.SeekTo(TimeSpan.FromMilliseconds(this.VlcVideoView.MediaPlayer!.Time - 10000));
+          if (this.Player.IsSeekable) {
+            this.Player.SeekTo(TimeSpan.FromMilliseconds(this.Player.Time - 10000));
           }
           break;
 
         case Keys.D:
-          if (this.VlcVideoView.MediaPlayer!.IsSeekable) {
-            this.VlcVideoView.MediaPlayer!.SeekTo(TimeSpan.FromMilliseconds(this.VlcVideoView.MediaPlayer!.Time + 10000));
+          if (this.Player.IsSeekable) {
+            this.Player.SeekTo(TimeSpan.FromMilliseconds(this.Player.Time + 10000));
           }
           break;
 
         case Keys.S:
-          this.VlcVideoView.MediaPlayer!.SetPause(true);
-          this.VlcVideoView.MediaPlayer!.Position = 0;
+          this.Player.SetPause(true);
+          this.Player.Position = 0;
           break;
 
         case Keys.Escape:
