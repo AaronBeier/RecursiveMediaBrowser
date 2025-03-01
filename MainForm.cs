@@ -4,8 +4,7 @@ namespace RecursiveMediaBrowser {
 
   public partial class MainForm : Form {
 
-    private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg", ".jfif"];
-    private static readonly string[] OtherExtensions = [".mp4", ".mkv", ".avi", ".mp3", ".flac", ".wav", ".ogg"];
+    private static readonly string[] SupportedFileExtensions = [".3g2", ".3ga", ".3gp", ".3gp2", ".3gpp", ".669", ".a52", ".aac", ".ac3", ".adts", ".aif", ".aifc", ".aiff", ".amr", ".amv", ".aob", ".ape", ".apng", ".asf", ".asx", ".au", ".avi", ".avif", ".b4s", ".bik", ".caf", ".cda", ".cue", ".dav", ".divx", ".drc", ".dts", ".dv", ".dvr-ms", ".evo", ".f4v", ".flac", ".flv", ".gvi", ".gxf", ".ifo", ".it", ".jfif", ".jpg", ".jpeg", ".m1v", ".m2t", ".m2ts", ".m2v", ".m3u", ".m3u8", ".m4a", ".m4p", ".m4v", ".mid", ".mka", ".mkv", ".mlp", ".mod", ".mov", ".mp1", ".mp2", ".mp2v", ".mp3", ".mp4", ".mp4v", ".mpa", ".mpc", ".mpe", ".mpeg", ".mpeg1", ".mpeg2", ".mpeg4", ".mpg", ".mpga", ".mpgv2", ".mts", ".mtv", ".mxf", ".nsv", ".nuv", ".oga", ".ogg", ".ogm", ".ogv", ".ogx", ".oma", ".opus", ".pls", ".pjp", ".pjpeg", ".png", ".qcp", ".ra", ".ram", ".rec", ".rm", ".rmi", ".rmvb", ".rpi", ".s3m", ".sdp", ".snd", ".spx", ".thp", ".tod", ".tp", ".ts", ".tta", ".tts", ".vlc", ".vlt", ".vob", ".voc", ".vqf", ".vro", ".w64", ".wav", ".webm", ".webp", ".wma", ".wmv", ".wpl", ".wsz", ".wtv", ".wv", ".wvx", ".xa", ".xesc", ".xm", ".xspf", ".zpl"];
 
     private readonly LibVLC Vlc;
     private readonly MediaPlayer Player;
@@ -51,7 +50,7 @@ namespace RecursiveMediaBrowser {
       #endregion
 
       foreach (string FilePath in Directory.EnumerateFiles(this.OpenFolderDialog.SelectedPath, "*", SearchOption.AllDirectories)) {
-        if (ImageExtensions.Contains(Path.GetExtension(FilePath)) || OtherExtensions.Contains(Path.GetExtension(FilePath))) {
+        if (SupportedFileExtensions.Contains(Path.GetExtension(FilePath))) {
           this.MediaFiles.Add(FilePath);
         }
       }
@@ -61,7 +60,7 @@ namespace RecursiveMediaBrowser {
     }
 
     private void Play() {
-      Media MediaFile = new(this.Vlc, MediaFiles[CurrentIndex]);
+      using Media MediaFile = new(this.Vlc, MediaFiles[CurrentIndex]);
       string? MediaTitle = MediaFile.Meta(MetadataType.Title) ?? MediaFile.Meta(MetadataType.Description) ?? MediaFiles[CurrentIndex];
 
       this.Text = $"Recursive Media Browser - {MediaTitle}";
