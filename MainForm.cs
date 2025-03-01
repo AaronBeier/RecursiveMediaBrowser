@@ -55,6 +55,11 @@ namespace RecursiveMediaBrowser {
         }
       }
 
+      if (this.MediaFiles.Count == 0) {
+        MessageBox.Show("No media files found in the specified folder", "Recursive Media Browser - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        Application.Exit();
+      }
+
       this.MediaFiles.Sort(new NaturalStringComparer());
       this.Play();
     }
